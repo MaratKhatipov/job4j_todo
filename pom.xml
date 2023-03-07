@@ -26,7 +26,10 @@
 		<profile>
 			<id>test</id>
 			<properties>
-				<liquibase.config>db/liquibase_test.properties</liquibase.config>
+				<db.url>jdbc:h2:${basedir}/testdb;MODE=PostgreSQL;CASE_INSENSITIVE_IDENTIFIERS=TRUE;</db.url>
+				<db.username></db.username>
+				<db.password></db.password>
+				<db.driver>org.h2.Driver</db.driver>
 			</properties>
 			<activation>
 				<activeByDefault>true</activeByDefault>
@@ -35,7 +38,10 @@
 		<profile>
 			<id>production</id>
 			<properties>
-				<liquibase.config>db/liquibase.properties</liquibase.config>
+				<db.url>jdbc:postgresql://127.0.0.1:5432/job4j_todo</db.url>
+				<db.username>postgres</db.username>
+				<db.password>postgres</db.password>
+				<db.driver>org.postgresql.Driver</db.driver>
 			</properties>
 		</profile>
 	</profiles>
@@ -75,6 +81,30 @@
 			<scope>test</scope>
 		</dependency>
 
+<!--		<dependency>-->
+<!--			<groupId>org.junit.jupiter</groupId>-->
+<!--			<artifactId>junit-jupiter-engine</artifactId>-->
+<!--			<version>5.9.1</version>-->
+<!--			<scope>test</scope>-->
+<!--		</dependency>-->
+
+<!--		<dependency>-->
+<!--			<groupId>org.junit.vintage</groupId>-->
+<!--			<artifactId>junit-vintage-engine</artifactId>-->
+<!--			<version>5.8.2</version>-->
+<!--			<scope>test</scope>-->
+<!--		</dependency>-->
+
+
+		<!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>3.23.1</version>
+			<scope>test</scope>
+		</dependency>
+
+
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -101,17 +131,43 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>2.1.214</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
 				<groupId>org.liquibase</groupId>
 				<artifactId>liquibase-maven-plugin</artifactId>
-				<version>4.15.0</version>
+				<version>3.6.2</version>
 				<configuration>
-					<propertyFile>${liquibase.config}</propertyFile>
+					<changeLogFile>${basedir}/db/master.xml</changeLogFile>
+					<url>${db.url}</url>
+					<driver>${db.driver}</driver>
+					<username>${db.username}</username>
+					<password>${db.password}</password>
+					<promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
 				</configuration>
 				<executions>
 					<execution>
@@ -119,6 +175,34 @@
 						<goals>
 							<goal>clearCheckSums</goal>
 							<goal>update</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.1.2</version>
+				<dependencies>
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>8.42</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<phase>validate</phase>
+						<configuration>
+							<configLocation>checkstyle.xml</configLocation>
+							<encoding>UTF-8</encoding>
+							<consoleOutput>true</consoleOutput>
+							<failsOnError>true</failsOnError>
+							<includeTestSourceDirectory>true</includeTestSourceDirectory>
+						</configuration>
+						<goals>
+							<goal>check</goal>
 						</goals>
 					</execution>
 				</executions>
